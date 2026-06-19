@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#6ec6ff" />
+<link rel="manifest" href="manifest.webmanifest"/>
+<link rel="apple-touch-icon" href="icon-180.png"/>
+<meta name="apple-mobile-web-app-title" content="색칠모험"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<title>현준이의 색칠 모험</title>
+<style>
+  *{box-sizing:border-box;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;height:100%;overflow:hidden;overscroll-behavior:none;touch-action:none;
+    font-family:"Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;background:#eaf6ff;color:#3a3a3a;}
+  #app{height:100dvh;display:flex;flex-direction:column;}
+  .screen{display:none;flex:1;min-height:0;flex-direction:column;}
+  .screen.show{display:flex;}
+
+  /* 공통 상단바 */
+  .topbar{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#fff;
+    box-shadow:0 2px 8px rgba(0,0,0,.08);z-index:5;}
+  .topbar .title{font-size:20px;font-weight:800;}
+  .spacer{flex:1;}
+  .btn{border:none;border-radius:16px;padding:8px 12px;min-height:54px;font-size:15px;font-weight:700;
+    color:#3a3a3a;cursor:pointer;background:#f0f4f8;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;gap:2px;min-width:58px;line-height:1.1;transition:transform .05s;}
+  .btn .ico{font-size:23px;}
+  .btn:active{transform:scale(.92);}
+  .btn.on{background:#ffe27a;box-shadow:inset 0 0 0 3px #ffb800;}
+  .btn.primary{background:#36c46a;color:#fff;}
+  .btn.big{font-size:18px;padding:14px 22px;min-height:64px;}
+
+  /* 홈(마을 지도) */
+  .home-head{text-align:center;padding:18px 12px 6px;}
+  .home-head h1{margin:0;font-size:30px;font-weight:900;}
+  .home-head p{margin:4px 0 0;font-size:15px;color:#6b7785;}
+  .home-scroll{flex:1;overflow:auto;padding:12px 14px 30px;}
+  .worlds{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;max-width:900px;margin:0 auto;}
+  .world{border-radius:22px;padding:18px;color:#fff;cursor:pointer;position:relative;
+    box-shadow:0 6px 16px rgba(0,0,0,.15);min-height:130px;display:flex;flex-direction:column;justify-content:space-between;}
+  .world:active{transform:scale(.97);}
+  .world .wemoji{font-size:46px;}
+  .world .wname{font-size:23px;font-weight:900;margin-top:6px;}
+  .world .wprog{font-size:15px;font-weight:700;opacity:.95;margin-top:6px;}
+  .world .bar{height:10px;border-radius:6px;background:rgba(255,255,255,.4);margin-top:6px;overflow:hidden;}
+  .world .bar i{display:block;height:100%;background:#fff;border-radius:6px;}
+  .extra-row{display:flex;gap:14px;flex-wrap:wrap;max-width:900px;margin:16px auto 0;}
+  .tile{flex:1;min-width:160px;border-radius:20px;padding:18px;text-align:center;cursor:pointer;
+    background:#fff;box-shadow:0 4px 12px rgba(0,0,0,.1);font-weight:800;font-size:18px;}
+  .tile:active{transform:scale(.97);}
+  .tile .ico{font-size:40px;display:block;margin-bottom:6px;}
+
+  /* 그림 고르기 */
+  .grid-scroll{flex:1;overflow:auto;padding:14px;}
+  .pics{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;max-width:900px;margin:0 auto;}
+  .pic{border-radius:18px;background:#fff;padding:8px;text-align:center;cursor:pointer;position:relative;
+    box-shadow:0 3px 10px rgba(0,0,0,.1);font-weight:700;}
+  .pic:active{transform:scale(.96);}
+  .pic svg{width:100%;height:120px;display:block;}
+  .pic .name{margin-top:4px;font-size:15px;}
+  .pic .badge{position:absolute;top:6px;right:8px;font-size:26px;}
+  .pic.locked{filter:grayscale(1);opacity:.55;}
+  .pic .lock{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:46px;}
+
+  /* 색칠/그리기 무대 */
+  .stage{flex:1;min-height:0;position:relative;background:#cfe9ff;display:flex;align-items:center;justify-content:center;}
+  .artbox{position:relative;background:#fff;border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.18);overflow:hidden;}
+  .artbox svg.art{position:absolute;inset:0;width:100%;height:100%;display:block;}
+  .artbox canvas{position:absolute;inset:0;width:100%;height:100%;display:block;}
+  #freeStage canvas{position:absolute;inset:0;width:100%;height:100%;display:block;background:#fff;}
+  svg.art .z{fill:#ffffff;stroke:#3a3a3a;stroke-width:4;stroke-linejoin:round;stroke-linecap:round;}
+  svg.art .ln{fill:none;stroke:#3a3a3a;stroke-width:4;stroke-linejoin:round;stroke-linecap:round;pointer-events:none;}
+  svg.art .dk{fill:#3a3a3a;stroke:none;pointer-events:none;}
+  svg.art.fillmode .z{cursor:pointer;}
+
+  /* 하단 팔레트 */
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 10px;background:#fff;
+    box-shadow:0 -2px 8px rgba(0,0,0,.08);z-index:5;}
+  .palette{display:flex;flex-wrap:wrap;gap:7px;}
+  .swatch{width:42px;height:42px;border-radius:50%;cursor:pointer;border:4px solid #fff;box-shadow:0 0 0 2px #d4d4d4;}
+  .swatch.on{box-shadow:0 0 0 4px #ffb800;transform:scale(1.08);}
+  .sizes{display:flex;gap:7px;}
+  .sizebtn{width:48px;height:48px;border-radius:14px;background:#f0f4f8;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+  .sizebtn.on{background:#ffe27a;box-shadow:inset 0 0 0 3px #ffb800;}
+  .dot{background:#444;border-radius:50%;}
+  .stickers{display:none;gap:7px;flex-wrap:wrap;}
+  .stickers.show{display:flex;}
+  .stk{font-size:26px;width:48px;height:48px;border-radius:12px;border:none;background:#f0f4f8;cursor:pointer;}
+  .stk.on{background:#ffe27a;box-shadow:inset 0 0 0 3px #ffb800;}
+
+  /* 도감 */
+  .book-scroll{flex:1;overflow:auto;padding:16px;}
+  .book-stat{text-align:center;font-size:20px;font-weight:800;margin-bottom:12px;}
+  .stickerbar{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:760px;margin:0 auto 18px;}
+  .stickerbar .got{font-size:34px;}
+  .stickerbar .empty{font-size:34px;opacity:.18;}
+
+  /* 설정 */
+  .set-scroll{flex:1;overflow:auto;padding:20px;}
+  .set-card{max-width:520px;margin:0 auto;background:#fff;border-radius:20px;padding:20px;box-shadow:0 4px 12px rgba(0,0,0,.1);}
+  .set-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #eef2f6;font-size:18px;font-weight:700;}
+  .set-row:last-child{border-bottom:none;}
+  .set-row input[type=text]{font-size:18px;padding:8px 12px;border:2px solid #d4dde6;border-radius:12px;width:140px;text-align:center;}
+  .toggle{width:64px;height:36px;border-radius:20px;background:#cfd8e0;position:relative;cursor:pointer;transition:background .15s;}
+  .toggle.on{background:#36c46a;}
+  .toggle i{position:absolute;top:3px;left:3px;width:30px;height:30px;border-radius:50%;background:#fff;transition:left .15s;}
+  .toggle.on i{left:31px;}
+
+  /* 완성 축하 */
+  .celebrate{position:fixed;inset:0;z-index:40;display:none;align-items:center;justify-content:center;
+    background:rgba(0,0,0,.45);}
+  .celebrate.show{display:flex;}
+  .celebrate .card{background:#fff;border-radius:28px;padding:30px 26px;text-align:center;max-width:420px;width:86%;
+    box-shadow:0 12px 40px rgba(0,0,0,.3);}
+  .celebrate .big{font-size:54px;}
+  .celebrate h2{margin:8px 0 4px;font-size:28px;}
+  .celebrate p{margin:0 0 18px;font-size:18px;color:#6b7785;}
+  .celebrate .row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+  .confetti{position:fixed;top:-40px;font-size:28px;pointer-events:none;z-index:45;animation:fall linear forwards;}
+  @keyframes fall{to{transform:translateY(110vh) rotate(540deg);opacity:.9;}}
+
+  .toast{position:fixed;left:50%;bottom:120px;transform:translateX(-50%);background:#333;color:#fff;
+    padding:12px 22px;border-radius:30px;font-size:18px;font-weight:700;opacity:0;transition:opacity .3s;z-index:30;}
+  .toast.show{opacity:.95;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ===== 홈: 마을 지도 ===== -->
+  <section class="screen show" id="screen-home">
+    <div class="home-head">
+      <h1 id="homeTitle">🎨 현준이의 색칠 모험</h1>
+      <p>마을을 골라 그림을 색칠하고 ⭐별을 모아봐!</p>
+    </div>
+    <div class="home-scroll">
+      <div class="worlds" id="worlds"></div>
+      <div class="extra-row">
+        <div class="tile" id="tileFree"><span class="ico">🖍️</span>자유 그리기<br><small style="font-weight:600;color:#6b7785">흰 도화지</small></div>
+        <div class="tile" id="tileBook"><span class="ico">📒</span>내 도감</div>
+        <div class="tile" id="tileSet"><span class="ico">⚙️</span>설정</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 그림 고르기 ===== -->
+  <section class="screen" id="screen-grid">
+    <div class="topbar">
+      <button class="btn" data-home="1"><span class="ico">🏠</span>마을</button>
+      <span class="title" id="gridTitle"></span>
+      <span class="spacer"></span>
+      <button class="btn" id="gridSound"><span class="ico">🔊</span>소리</button>
+    </div>
+    <div class="grid-scroll"><div class="pics" id="pics"></div></div>
+  </section>
+
+  <!-- ===== 색칠 화면 ===== -->
+  <section class="screen" id="screen-color">
+    <div class="topbar">
+      <button class="btn" id="colorBack"><span class="ico">↩️</span>나가기</button>
+      <span class="title" id="colorTitle"></span>
+      <span class="spacer"></span>
+      <button class="btn" id="cUndo"><span class="ico">↩️</span>되돌리기</button>
+      <button class="btn primary big" id="cDone"><span class="ico">✅</span>다 했어요!</button>
+    </div>
+    <div class="stage" id="colorStage"><div class="artbox" id="artbox">
+      <svg class="art"></svg><canvas></canvas>
+    </div></div>
+    <div class="toolbar">
+      <button class="btn on" id="cFill"><span class="ico">🪣</span>색칠</button>
+      <button class="btn" id="cDraw"><span class="ico">🖍️</span>크레용</button>
+      <button class="btn" id="cEraser"><span class="ico">🧽</span>지우개</button>
+      <button class="btn" id="cStk"><span class="ico">⭐</span>스티커</button>
+      <div class="palette" id="cPalette"></div>
+      <div class="sizes" id="cSizes">
+        <button class="sizebtn" data-i="0"><span class="dot" style="width:8px;height:8px"></span></button>
+        <button class="sizebtn on" data-i="1"><span class="dot" style="width:16px;height:16px"></span></button>
+        <button class="sizebtn" data-i="2"><span class="dot" style="width:26px;height:26px"></span></button>
+      </div>
+      <div class="stickers" id="cStickers"></div>
+    </div>
+  </section>
+
+  <!-- ===== 자유 그리기 ===== -->
+  <section class="screen" id="screen-free">
+    <div class="topbar">
+      <button class="btn" data-home="1"><span class="ico">🏠</span>마을</button>
+      <span class="title">자유 그리기</span>
+      <span class="spacer"></span>
+      <button class="btn" id="fUndo"><span class="ico">↩️</span>되돌리기</button>
+      <button class="btn" id="fSave"><span class="ico">💾</span>저장</button>
+      <button class="btn" id="fClear"><span class="ico">🗑️</span>새 그림</button>
+    </div>
+    <div class="stage" id="freeStage"><canvas id="freeCanvas"></canvas></div>
+    <div class="toolbar">
+      <button class="btn on" id="fDraw"><span class="ico">🖍️</span>그리기</button>
+      <button class="btn" id="fFill"><span class="ico">🪣</span>색칠</button>
+      <button class="btn" id="fEraser"><span class="ico">🧽</span>지우개</button>
+      <button class="btn" id="fStk"><span class="ico">⭐</span>스티커</button>
+      <div class="palette" id="fPalette"></div>
+      <div class="sizes" id="fSizes">
+        <button class="sizebtn" data-i="0"><span class="dot" style="width:8px;height:8px"></span></button>
+        <button class="sizebtn on" data-i="1"><span class="dot" style="width:16px;height:16px"></span></button>
+        <button class="sizebtn" data-i="2"><span class="dot" style="width:26px;height:26px"></span></button>
+      </div>
+      <div class="stickers" id="fStickers"></div>
+    </div>
+  </section>
+
+  <!-- ===== 도감 ===== -->
+  <section class="screen" id="screen-book">
+    <div class="topbar">
+      <button class="btn" data-home="1"><span class="ico">🏠</span>마을</button>
+      <span class="title">📒 내 도감</span>
+    </div>
+    <div class="book-scroll">
+      <div class="book-stat" id="bookStat"></div>
+      <div class="stickerbar" id="stickerbar"></div>
+      <div class="pics" id="bookPics"></div>
+    </div>
+  </section>
+
+  <!-- ===== 설정 ===== -->
+  <section class="screen" id="screen-settings">
+    <div class="topbar">
+      <button class="btn" data-home="1"><span class="ico">🏠</span>마을</button>
+      <span class="title">⚙️ 설정</span>
+    </div>
+    <div class="set-scroll"><div class="set-card">
+      <div class="set-row"><span>아이 이름</span><input type="text" id="setName" maxlength="6"></div>
+      <div class="set-row"><span>🔊 소리 효과</span><div class="toggle" id="tgSound"><i></i></div></div>
+      <div class="set-row"><span>🎵 배경 음악</span><div class="toggle" id="tgBgm"><i></i></div></div>
+      <div class="set-row"><span>🗣️ 칭찬 목소리</span><div class="toggle" id="tgVoice"><i></i></div></div>
+      <div class="set-row"><span>별·도감 모두 비우기</span><button class="btn" id="resetProg"><span class="ico">♻️</span>초기화</button></div>
+    </div></div>
+  </section>
+</div>
+
+<!-- 완성 축하 -->
+<div class="celebrate" id="celebrate"><div class="card">
+  <div class="big">🎉⭐🎉</div>
+  <h2 id="celTitle">완성!</h2>
+  <p id="celMsg"></p>
+  <div class="row">
+    <button class="btn" id="celBook"><span class="ico">📒</span>도감 보기</button>
+    <button class="btn" id="celAgain"><span class="ico">🖍️</span>더 칠하기</button>
+    <button class="btn primary" id="celNext"><span class="ico">➡️</span>다음 그림</button>
+  </div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   현준이의 색칠 모험 — 그림 데이터 (SVG 라인아트)
+   viewBox 0 0 400 360.  class z=색칠칸, ln=선만, dk=눈동자 등 검은 점
+   그림을 추가/수정한 뒤  `node render-art.js`  로 미리보기를 만들어 확인하세요.
+   ============================================================ */
+(function () {
+  "use strict";
+
+  /* ---------- 재사용 라인아트 ---------- */
+  var PAC =
+    '<rect class="z" x="0" y="0" width="400" height="360"/>' +
+    '<path class="z" d="M180 180 L286 124 A120 120 0 1 0 286 236 Z"/>' +
+    '<circle class="dk" cx="168" cy="118" r="13"/>' +
+    '<circle class="z" cx="345" cy="180" r="15"/>' +
+    '<circle class="z" cx="388" cy="180" r="9"/>';
+
+  var GHOST =
+    '<rect class="z" x="0" y="0" width="400" height="360"/>' +
+    '<path class="z" d="M104 290 V168 A96 96 0 0 1 296 168 V290 q-24 24 -48 0 q-24 24 -48 0 q-24 24 -48 0 q-24 24 -48 0 Z"/>' +
+    '<ellipse class="z" cx="172" cy="150" rx="26" ry="32"/>' +
+    '<ellipse class="z" cx="228" cy="150" rx="26" ry="32"/>' +
+    '<circle class="dk" cx="184" cy="156" r="13"/>' +
+    '<circle class="dk" cx="240" cy="156" r="13"/>';
+
+  var ROBOT =
+    '<rect class="z" x="0" y="0" width="400" height="360"/>' +
+    '<line class="ln" x1="200" y1="60" x2="200" y2="92"/>' +
+    '<circle class="z" cx="200" cy="50" r="12"/>' +
+    '<rect class="z" x="140" y="92" width="120" height="92" rx="20"/>' +
+    '<rect class="z" x="158" y="108" width="84" height="60" rx="12"/>' +
+    '<circle class="z" cx="183" cy="132" r="12"/>' +
+    '<circle class="z" cx="217" cy="132" r="12"/>' +
+    '<path class="ln" d="M180 154 q20 14 40 0"/>' +
+    '<rect class="z" x="186" y="184" width="28" height="16"/>' +
+    '<rect class="z" x="132" y="200" width="136" height="110" rx="20"/>' +
+    '<rect class="z" x="166" y="222" width="68" height="44" rx="8"/>' +
+    '<circle class="z" cx="184" cy="244" r="8"/>' +
+    '<circle class="z" cx="216" cy="244" r="8"/>' +
+    '<rect class="z" x="86" y="210" width="40" height="78" rx="18"/>' +
+    '<circle class="z" cx="106" cy="298" r="20"/>' +
+    '<rect class="z" x="274" y="210" width="40" height="78" rx="18"/>' +
+    '<circle class="z" cx="294" cy="298" r="20"/>' +
+    '<rect class="z" x="158" y="310" width="34" height="44" rx="8"/>' +
+    '<rect class="z" x="208" y="310" width="34" height="44" rx="8"/>' +
+    '<circle class="dk" cx="183" cy="132" r="5"/>' +
+    '<circle class="dk" cx="217" cy="132" r="5"/>';
+
+  var HOUSE =
+    '<rect class="z" x="0" y="0" width="400" height="250"/>' +
+    '<rect class="z" x="0" y="250" width="400" height="110"/>' +
+    '<circle class="z" cx="60" cy="60" r="34"/>' +
+    '<rect class="z" x="270" y="110" width="30" height="56"/>' +
+    '<path class="z" d="M92 172 L210 86 L328 172 Z"/>' +
+    '<rect class="z" x="110" y="170" width="200" height="150"/>' +
+    '<rect class="z" x="180" y="240" width="56" height="80" rx="6"/>' +
+    '<circle class="dk" cx="226" cy="282" r="5"/>' +
+    '<rect class="z" x="135" y="195" width="50" height="50" rx="4"/>' +
+    '<rect class="z" x="240" y="195" width="50" height="50" rx="4"/>' +
+    '<path class="ln" d="M160 195 V245 M135 220 H185"/>' +
+    '<path class="ln" d="M265 195 V245 M240 220 H290"/>' +
+    '<circle class="z" cx="285" cy="96" r="12"/>' +
+    '<circle class="z" cx="302" cy="76" r="10"/>' +
+    '<rect class="z" x="352" y="208" width="18" height="52"/>' +
+    '<circle class="z" cx="361" cy="192" r="32"/>';
+
+  var CAR =
+    '<rect class="z" x="0" y="0" width="400" height="262"/>' +
+    '<rect class="z" x="0" y="262" width="400" height="98"/>' +
+    '<path class="z" d="M44 250 Q40 196 92 188 Q118 150 168 146 L248 146 Q300 150 320 192 Q360 198 362 250 Z"/>' +
+    '<path class="z" d="M150 150 Q156 112 196 110 L236 110 Q278 116 292 150 Z"/>' +
+    '<line class="ln" x1="221" y1="112" x2="221" y2="150"/>' +
+    '<circle class="z" cx="116" cy="250" r="40"/>' +
+    '<circle class="z" cx="300" cy="250" r="40"/>' +
+    '<circle class="z" cx="116" cy="250" r="16"/>' +
+    '<circle class="z" cx="300" cy="250" r="16"/>' +
+    '<circle class="z" cx="350" cy="214" r="12"/>';
+
+  var TRAIN =
+    '<rect class="z" x="0" y="0" width="400" height="250"/>' +
+    '<rect class="z" x="0" y="250" width="400" height="110"/>' +
+    '<rect class="z" x="50" y="242" width="300" height="20" rx="6"/>' +
+    '<rect class="z" x="58" y="118" width="104" height="124" rx="12"/>' +
+    '<rect class="z" x="78" y="138" width="66" height="54" rx="6"/>' +
+    '<rect class="z" x="150" y="168" width="176" height="80" rx="24"/>' +
+    '<circle class="z" cx="326" cy="208" r="40"/>' +
+    '<ellipse class="z" cx="196" cy="168" rx="22" ry="14"/>' +
+    '<path class="z" d="M236 168 L232 126 L276 126 L272 168 Z"/>' +
+    '<circle class="z" cx="254" cy="110" r="14"/>' +
+    '<circle class="z" cx="278" cy="92" r="11"/>' +
+    '<circle class="z" cx="296" cy="78" r="8"/>' +
+    '<circle class="z" cx="120" cy="270" r="38"/>' +
+    '<circle class="z" cx="216" cy="276" r="24"/>' +
+    '<circle class="z" cx="300" cy="276" r="24"/>' +
+    '<circle class="dk" cx="120" cy="270" r="12"/>' +
+    '<circle class="dk" cx="216" cy="276" r="8"/>' +
+    '<circle class="dk" cx="300" cy="276" r="8"/>';
+
+  var ROCKET =
+    '<rect class="z" x="0" y="0" width="400" height="360"/>' +
+    '<circle class="dk" cx="60" cy="70" r="4"/>' +
+    '<circle class="dk" cx="340" cy="90" r="5"/>' +
+    '<circle class="dk" cx="70" cy="280" r="4"/>' +
+    '<circle class="dk" cx="330" cy="300" r="4"/>' +
+    '<path class="z" d="M154 198 L112 274 L154 252 Z"/>' +
+    '<path class="z" d="M246 198 L288 274 L246 252 Z"/>' +
+    '<path class="z" d="M200 40 C242 92 246 150 246 222 L154 222 C154 150 158 92 200 40 Z"/>' +
+    '<rect class="z" x="174" y="222" width="52" height="24" rx="4"/>' +
+    '<path class="z" d="M182 246 Q200 322 218 246 Z"/>' +
+    '<circle class="z" cx="200" cy="122" r="32"/>' +
+    '<circle class="ln" cx="200" cy="122" r="20" fill="none"/>';
+
+  var UFO =
+    '<rect class="z" x="0" y="0" width="400" height="360"/>' +
+    '<circle class="dk" cx="60" cy="70" r="4"/>' +
+    '<circle class="dk" cx="338" cy="80" r="5"/>' +
+    '<circle class="dk" cx="50" cy="290" r="4"/>' +
+    '<circle class="dk" cx="350" cy="300" r="4"/>' +
+    '<ellipse class="z" cx="200" cy="214" rx="150" ry="42"/>' +
+    '<path class="z" d="M124 200 A78 58 0 0 1 276 200 Z"/>' +
+    '<ellipse class="z" cx="200" cy="176" rx="30" ry="22"/>' +
+    '<circle class="z" cx="100" cy="222" r="12"/>' +
+    '<circle class="z" cx="155" cy="232" r="12"/>' +
+    '<circle class="z" cx="200" cy="236" r="12"/>' +
+    '<circle class="z" cx="245" cy="232" r="12"/>' +
+    '<circle class="z" cx="300" cy="222" r="12"/>';
+
+  var DINO =
+    '<rect class="z" x="0" y="0" width="400" height="300"/>' +
+    '<rect class="z" x="0" y="300" width="400" height="60"/>' +
+    '<rect class="z" x="90" y="255" width="30" height="55" rx="12"/>' +
+    '<rect class="z" x="138" y="258" width="30" height="52" rx="12"/>' +
+    '<rect class="z" x="205" y="255" width="30" height="55" rx="12"/>' +
+    '<rect class="z" x="240" y="252" width="30" height="58" rx="12"/>' +
+    '<path class="z" d="M30 248 C70 235 110 225 150 222 C185 220 200 213 215 205 C235 175 245 120 258 92 C266 70 295 64 315 78 C332 90 330 110 312 118 C296 124 280 130 268 150 C256 175 252 195 250 220 C248 250 240 264 200 266 C150 270 100 268 70 262 C50 258 38 254 30 248 Z"/>' +
+    '<circle class="dk" cx="304" cy="88" r="5"/>' +
+    '<path class="ln" d="M300 108 q14 8 20 0"/>';
+
+  var TREE =
+    '<rect class="z" x="0" y="0" width="400" height="300"/>' +
+    '<rect class="z" x="0" y="300" width="400" height="60"/>' +
+    '<path class="z" d="M184 320 L184 210 Q184 200 196 200 L204 200 Q216 200 216 210 L216 320 Z"/>' +
+    '<path class="z" d="M200 76 C150 76 118 116 130 158 C98 168 104 222 152 228 C162 266 250 266 262 228 C306 224 308 166 276 156 C290 112 252 76 200 76 Z"/>' +
+    '<circle class="z" cx="170" cy="150" r="12"/>' +
+    '<circle class="z" cx="228" cy="142" r="12"/>' +
+    '<circle class="z" cx="200" cy="192" r="12"/>';
+
+  var FLOWER =
+    '<rect class="z" x="0" y="0" width="400" height="300"/>' +
+    '<rect class="z" x="0" y="300" width="400" height="60"/>' +
+    '<path class="z" d="M194 300 L194 150 L206 150 L206 300 Z"/>' +
+    '<path class="z" d="M194 240 C160 220 140 235 150 255 C175 258 190 250 194 240 Z"/>' +
+    '<path class="z" d="M206 220 C240 200 260 215 250 235 C225 238 210 230 206 220 Z"/>' +
+    '<circle class="z" cx="258" cy="130" r="36"/>' +
+    '<circle class="z" cx="229" cy="80" r="36"/>' +
+    '<circle class="z" cx="171" cy="80" r="36"/>' +
+    '<circle class="z" cx="142" cy="130" r="36"/>' +
+    '<circle class="z" cx="171" cy="180" r="36"/>' +
+    '<circle class="z" cx="229" cy="180" r="36"/>' +
+    '<circle class="z" cx="200" cy="130" r="34"/>';
+
+  /* ---------- 마을 ---------- */
+  var WORLDS = [
+    { id: "pac",   name: "팩맨 마을", emoji: "🟡", color: "linear-gradient(135deg,#ffd23d,#f5a700)" },
+    { id: "car",   name: "탈것 마을", emoji: "🚗", color: "linear-gradient(135deg,#ff7043,#e64a19)" },
+    { id: "robot", name: "로봇·공룡", emoji: "🤖", color: "linear-gradient(135deg,#5c6bc0,#283593)" },
+    { id: "town",  name: "우리 동네", emoji: "🏡", color: "linear-gradient(135deg,#66bb6a,#2e7d32)" }
+  ];
+
+  /* ---------- 그림 (마을별 순서대로 = 잠금해제 순서) ---------- */
+  var PICTURES = [
+    { id: "pac",     world: "pac",   name: "팩맨",      emoji: "🟡", art: PAC },
+    { id: "ghost_r", world: "pac",   name: "빨강 괴물", emoji: "👾", art: GHOST },
+    { id: "ghost_b", world: "pac",   name: "파랑 괴물", emoji: "👻", art: GHOST },
+
+    { id: "car",     world: "car",   name: "자동차",    emoji: "🚗", art: CAR },
+    { id: "train",   world: "car",   name: "기차",      emoji: "🚂", art: TRAIN },
+    { id: "rocket",  world: "car",   name: "로켓",      emoji: "🚀", art: ROCKET },
+
+    { id: "robot",   world: "robot", name: "로봇",      emoji: "🤖", art: ROBOT },
+    { id: "ufo",     world: "robot", name: "우주선",    emoji: "🛸", art: UFO },
+    { id: "dino",    world: "robot", name: "공룡",      emoji: "🦕", art: DINO },
+
+    { id: "house",   world: "town",  name: "집",        emoji: "🏡", art: HOUSE },
+    { id: "tree",    world: "town",  name: "나무",      emoji: "🌳", art: TREE },
+    { id: "flower",  world: "town",  name: "꽃",        emoji: "🌷", art: FLOWER }
+  ];
+
+  /* 색칠 완성 도감에서 보여줄 스티커 후보 */
+  var STICKER_POOL = ["⭐","🏆","🟡","👾","👻","🚗","🚂","🚀","🤖","🛸","🦕","🏡","🌳","🌷"];
+
+  var api = { WORLDS: WORLDS, PICTURES: PICTURES, STICKER_POOL: STICKER_POOL };
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  if (typeof window !== "undefined") { window.WORLDS = WORLDS; window.PICTURES = PICTURES; window.STICKER_POOL = STICKER_POOL; }
+})();
+
+</script>
+<script>
+(function(){
+"use strict";
+
+/* ====================== 색칠 그림 데이터 (art.js 에서 불러옴) ====================== */
+var WORLDS=window.WORLDS||[], PICTURES=window.PICTURES||[];
+
+/* ====================== 저장(localStorage) ====================== */
+var KEY="hyeonjun-paint-v2";
+var DEF={name:"현준", sound:true, bgm:true, voice:true, done:{}, stickers:[]};
+var save=load();
+function load(){ try{var s=JSON.parse(localStorage.getItem(KEY)); return Object.assign({},DEF,s||{});}catch(e){return Object.assign({},DEF);} }
+function persist(){ try{localStorage.setItem(KEY,JSON.stringify(save));}catch(e){} }
+
+/* ====================== 소리 / 음성 ====================== */
+var AC=null, bgmTimer=null;
+function audio(){ if(!AC){ try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){} } if(AC&&AC.state==="suspended")AC.resume(); return AC; }
+function tone(freq,dur,type,gain,delay){ var ac=audio(); if(!ac||!save.sound)return;
+  var t=ac.currentTime+(delay||0); var o=ac.createOscillator(),g=ac.createGain();
+  o.type=type||"sine"; o.frequency.value=freq; o.connect(g); g.connect(ac.destination);
+  g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(gain||0.18,t+0.02);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+dur); o.start(t); o.stop(t+dur+0.02); }
+function sfx(kind){
+  if(kind==="pop"){ tone(620,0.12,"sine",0.2); tone(880,0.12,"sine",0.12,0.05); }
+  else if(kind==="click"){ tone(330,0.07,"triangle",0.12); }
+  else if(kind==="erase"){ tone(220,0.1,"sawtooth",0.08); }
+  else if(kind==="win"){ var n=[523,659,784,1047]; for(var i=0;i<n.length;i++)tone(n[i],0.25,"triangle",0.2,i*0.12); }
+}
+/* 배경음악: 부드러운 루프 */
+var MELODY=[523,587,659,784,659,587,523,440,523,659,784,659];
+var mi=0;
+function bgmStart(){ if(bgmTimer||!save.bgm)return; audio(); mi=0;
+  bgmTimer=setInterval(function(){ var ac=audio(); if(!ac||!save.bgm)return;
+    var f=MELODY[mi%MELODY.length]; mi++;
+    var t=ac.currentTime,o=ac.createOscillator(),g=ac.createGain();
+    o.type="triangle"; o.frequency.value=f; o.connect(g); g.connect(ac.destination);
+    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.05,t+0.05);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+0.5); o.start(t); o.stop(t+0.55);
+  },480); }
+function bgmStop(){ if(bgmTimer){clearInterval(bgmTimer);bgmTimer=null;} }
+
+/* 이름 + 조사(아/야) */
+function callName(){ var n=save.name||"친구"; var c=n.charCodeAt(n.length-1);
+  var josa="아"; if(c>=0xAC00&&c<=0xD7A3){ josa=((c-0xAC00)%28!==0)?"아":"야"; }
+  return n+josa; }
+var PRAISE=["{n} 정말 잘했어!","우와, {n} 최고야!","{n} 멋지다!","와! 완성했네, {n}!","{n} 색칠 천재인데?","좋아 좋아, {n}!","대단해 {n}! 박수!"];
+function speak(text){ if(!save.voice||!("speechSynthesis"in window))return;
+  try{ window.speechSynthesis.cancel();
+    var u=new SpeechSynthesisUtterance(text); u.lang="ko-KR"; u.rate=1.0; u.pitch=1.2;
+    var vs=window.speechSynthesis.getVoices(); for(var i=0;i<vs.length;i++){ if(vs[i].lang&&vs[i].lang.toLowerCase().indexOf("ko")===0){u.voice=vs[i];break;} }
+    window.speechSynthesis.speak(u);
+  }catch(e){} }
+function praise(){ var line=PRAISE[Math.floor(Math.random()*PRAISE.length)]; speak(line.replace("{n}",callName())); }
+if("speechSynthesis"in window){ window.speechSynthesis.onvoiceschanged=function(){}; }
+
+/* ====================== 공통 UI 헬퍼 ====================== */
+var COLORS=["#ff5a5a","#ff8a3d","#ffd23d","#fff07a","#8dd02f","#36c46a","#27c2b8","#36a3ff",
+  "#4b6dff","#8a5cff","#c25cff","#ff6fc7","#ffb0d4","#a9683b","#ffd9b3","#ffffff","#9aa0a6","#3a3a3a"];
+var STICKERS=["⭐","🌟","❤️","🌈","✨","🌸","🐶","🐱","🦋","🐟","🚗","🍎","🎈","🦄","🍦","🚀","👑","🐸"];
+var SIZES=[5,14,30], STK_SIZES=[40,68,108];
+var DPR=Math.min(window.devicePixelRatio||1,2);
+
+function buildPalette(box,onPick,initial){
+  box.innerHTML="";
+  COLORS.forEach(function(c){ var b=document.createElement("div");
+    b.className="swatch"+(c===initial?" on":""); b.style.background=c;
+    if(c==="#ffffff")b.style.boxShadow="0 0 0 2px #bbb";
+    b.addEventListener("click",function(){ onPick(c);
+      [].forEach.call(box.children,function(x){x.classList.remove("on");}); b.classList.add("on"); sfx("click"); });
+    box.appendChild(b); });
+}
+function buildStickers(box,onPick){ box.innerHTML="";
+  STICKERS.forEach(function(s,i){ var b=document.createElement("button");
+    b.className="stk"+(i===0?" on":""); b.textContent=s;
+    b.addEventListener("click",function(){ onPick(s);
+      [].forEach.call(box.children,function(x){x.classList.remove("on");}); b.classList.add("on"); sfx("click"); });
+    box.appendChild(b); });
+}
+function buildSizes(box,onPick){ [].forEach.call(box.children,function(b){
+  b.addEventListener("click",function(){ onPick(+b.dataset.i);
+    [].forEach.call(box.children,function(x){x.classList.remove("on");}); b.classList.add("on"); sfx("click"); }); }); }
+
+function makeArtSVG(art){ var d=document.createElement("div");
+  d.innerHTML='<svg class="art" viewBox="0 0 400 360" preserveAspectRatio="xMidYMid meet">'+art+'</svg>';
+  var svg=d.firstChild; var zs=svg.querySelectorAll(".z");
+  for(var i=0;i<zs.length;i++)zs[i].setAttribute("data-i",i); return svg; }
+function applyColors(svg,colors){ var zs=svg.querySelectorAll(".z");
+  for(var i=0;i<zs.length;i++){ zs[i].style.fill=(colors&&colors[i])?colors[i]:"#ffffff"; } }
+
+/* ====================== 화면 전환 ====================== */
+function show(id){ var ss=document.querySelectorAll(".screen");
+  for(var i=0;i<ss.length;i++)ss[i].classList.toggle("show",ss[i].id==="screen-"+id);
+  if(id==="home")renderHome(); if(id==="book")renderBook(); }
+[].forEach.call(document.querySelectorAll("[data-home]"),function(b){ b.addEventListener("click",function(){ sfx("click"); show("home"); }); });
+
+/* ====================== 홈(마을) ====================== */
+function worldPics(wid){ return PICTURES.filter(function(p){return p.world===wid;}); }
+function isDone(pid){ return !!save.done[pid]; }
+function unlockedIndex(wid){ var ps=worldPics(wid),n=0; for(var i=0;i<ps.length;i++){ if(isDone(ps[i].id))n=i+1; } return n; } /* n번째까지 열림(0-based: index<=n 열림) */
+function isUnlocked(pid){ var p=PICTURES.find(function(x){return x.id===pid;}); var ps=worldPics(p.world);
+  var idx=ps.findIndex(function(x){return x.id===pid;}); return idx<=unlockedIndex(p.world); }
+
+function renderHome(){
+  document.getElementById("homeTitle").textContent="🎨 "+save.name+"이의 색칠 모험";
+  var wrap=document.getElementById("worlds"); wrap.innerHTML="";
+  if(!WORLDS.length){ wrap.innerHTML='<div style="grid-column:1/-1;background:#fff;border-radius:16px;padding:24px;text-align:center;font-size:17px;color:#444;line-height:1.6">앗! 그림 파일을 못 읽었어요. 😢<br><b>현준이의-색칠모험.html</b> 파일을 보내고 열어 주세요.<br>(index.html 은 작업용이라 혼자서는 안 돼요)</div>'; return; }
+  WORLDS.forEach(function(w){ var ps=worldPics(w.id); var done=ps.filter(function(p){return isDone(p.id);}).length;
+    var el=document.createElement("div"); el.className="world"; el.style.background=w.color;
+    el.innerHTML='<div><div class="wemoji">'+w.emoji+'</div><div class="wname">'+w.name+'</div></div>'+
+      '<div><div class="wprog">⭐ '+done+' / '+ps.length+'</div><div class="bar"><i style="width:'+(ps.length?Math.round(done/ps.length*100):0)+'%"></i></div></div>';
+    el.addEventListener("click",function(){ sfx("click"); openGrid(w.id); });
+    wrap.appendChild(el); });
+}
+document.getElementById("tileFree").addEventListener("click",function(){ sfx("click"); openFree(); });
+document.getElementById("tileBook").addEventListener("click",function(){ sfx("click"); show("book"); });
+document.getElementById("tileSet").addEventListener("click",function(){ sfx("click"); openSettings(); });
+
+/* ====================== 그림 고르기 ====================== */
+var gridSoundOn=true;
+function openGrid(wid){ var w=WORLDS.find(function(x){return x.id===wid;});
+  document.getElementById("gridTitle").textContent=w.emoji+" "+w.name;
+  var box=document.getElementById("pics"); box.innerHTML="";
+  worldPics(wid).forEach(function(p){
+    var card=document.createElement("div"); card.className="pic"+(isUnlocked(p.id)?"":" locked");
+    var svg=makeArtSVG(p.art); if(isDone(p.id))applyColors(svg,save.done[p.id].colors); else applyColors(svg,null);
+    card.appendChild(svg);
+    var nm=document.createElement("div"); nm.className="name"; nm.textContent=p.name; card.appendChild(nm);
+    if(isDone(p.id)){ var b=document.createElement("div"); b.className="badge"; b.textContent="⭐"; card.appendChild(b); }
+    if(!isUnlocked(p.id)){ var lk=document.createElement("div"); lk.className="lock"; lk.textContent="🔒"; card.appendChild(lk); }
+    card.addEventListener("click",function(){
+      if(!isUnlocked(p.id)){ sfx("erase"); speak("앞 그림을 먼저 완성해줘!"); showToast("앞 그림을 완성하면 열려요 🔒"); return; }
+      sfx("click"); openColoring(p.id); });
+    box.appendChild(card); });
+  document.getElementById("gridSound").classList.toggle("on",save.sound);
+  show("grid");
+}
+
+/* ====================== 색칠 화면 ====================== */
+var artbox=document.getElementById("artbox");
+var cSvgHolder=artbox.querySelector("svg");
+var cCanvas=artbox.querySelector("canvas");
+var cCtx=cCanvas.getContext("2d");
+var colorState={tool:"fill",color:"#ff5a5a",size:1,sticker:"⭐"};
+var curPic=null, curSvg=null, curZones={}, cUndoStack=[], celebrated=false;
+
+buildPalette(document.getElementById("cPalette"),function(c){ colorState.color=c; if(colorState.tool!=="draw"&&colorState.tool!=="sticker"){} }, colorState.color);
+buildStickers(document.getElementById("cStickers"),function(s){ colorState.sticker=s; setCTool("sticker"); });
+buildSizes(document.getElementById("cSizes"),function(i){ colorState.size=i; });
+
+function setCTool(t){ colorState.tool=t;
+  var map={fill:"cFill",draw:"cDraw",eraser:"cEraser",sticker:"cStk"};
+  for(var k in map)document.getElementById(map[k]).classList.toggle("on",k===t);
+  document.getElementById("cStickers").classList.toggle("show",t==="sticker");
+  // 색칠(fill)일 때만 캔버스가 클릭을 통과시켜 SVG 칸을 누를 수 있게
+  cCanvas.style.pointerEvents=(t==="fill")?"none":"auto";
+  if(curSvg)curSvg.classList.toggle("fillmode",t==="fill");
+}
+document.getElementById("cFill").addEventListener("click",function(){sfx("click");setCTool("fill");});
+document.getElementById("cDraw").addEventListener("click",function(){sfx("click");setCTool("draw");});
+document.getElementById("cEraser").addEventListener("click",function(){sfx("click");setCTool("eraser");});
+document.getElementById("cStk").addEventListener("click",function(){sfx("click");setCTool("sticker");});
+
+function fitArtbox(){
+  var stage=document.getElementById("colorStage"); var pad=16;
+  var aw=stage.clientWidth-pad*2, ah=stage.clientHeight-pad*2; var aspect=400/360;
+  var w=Math.min(aw,ah*aspect), h=w/aspect; if(h>ah){h=ah;w=h*aspect;}
+  artbox.style.width=w+"px"; artbox.style.height=h+"px";
+  cCanvas.width=Math.round(w*DPR); cCanvas.height=Math.round(h*DPR);
+}
+function openColoring(pid){
+  curPic=PICTURES.find(function(x){return x.id===pid;}); celebrated=false;
+  document.getElementById("colorTitle").textContent=curPic.emoji+" "+curPic.name;
+  // SVG 교체
+  curSvg=makeArtSVG(curPic.art); cSvgHolder.parentNode.replaceChild(curSvg,cSvgHolder); cSvgHolder=curSvg;
+  curSvg.classList.add("fillmode");
+  // 저장된 색 불러오기
+  curZones=(save.done[pid]&&save.done[pid].colors)?Object.assign({},save.done[pid].colors):{};
+  applyColors(curSvg,curZones);
+  // 칸 클릭(색칠)
+  curSvg.addEventListener("pointerdown",onZoneTap);
+  show("color"); setCTool("fill");
+  requestAnimationFrame(function(){ fitArtbox(); cCtx.clearRect(0,0,cCanvas.width,cCanvas.height);
+    cUndoStack=[]; pushColorUndo(); });
+  speak(curPic.name+"! 예쁘게 색칠해보자!");
+}
+function onZoneTap(e){ if(colorState.tool!=="fill")return; var z=e.target;
+  while(z&&z!==curSvg&&!(z.classList&&z.classList.contains("z")))z=z.parentNode;
+  if(!z||z===curSvg)return;
+  pushColorUndo(); var i=+z.getAttribute("data-i"); z.style.fill=colorState.color; curZones[i]=colorState.color;
+  sfx("pop"); checkComplete();
+}
+function cScale(){ return cCanvas.width/cCanvas.getBoundingClientRect().width; }
+function pushColorUndo(){ cUndoStack.push({zones:Object.assign({},curZones),canvas:cCanvas.toDataURL()});
+  if(cUndoStack.length>25)cUndoStack.shift(); }
+function colorUndo(){ if(cUndoStack.length<2)return; cUndoStack.pop(); var s=cUndoStack[cUndoStack.length-1];
+  curZones=Object.assign({},s.zones); applyColors(curSvg,curZones);
+  var img=new Image(); img.onload=function(){ cCtx.clearRect(0,0,cCanvas.width,cCanvas.height); cCtx.drawImage(img,0,0,cCanvas.width,cCanvas.height); }; img.src=s.canvas; }
+document.getElementById("cUndo").addEventListener("click",function(){sfx("click");colorUndo();});
+document.getElementById("colorBack").addEventListener("click",function(){sfx("click"); openGrid(curPic.world);});
+
+/* 크레용/지우개/스티커 — 오버레이 캔버스 */
+var cDrawing=false,cId=null,cLast=null,cRect=null,cSc=1;
+function cStrokeStyle(){ var s=SIZES[colorState.size]*cSc;
+  if(colorState.tool==="eraser"){ cCtx.globalCompositeOperation="destination-out"; cCtx.strokeStyle="rgba(0,0,0,1)"; cCtx.fillStyle="rgba(0,0,0,1)"; s*=2.6; }
+  else { cCtx.globalCompositeOperation="source-over"; cCtx.strokeStyle=colorState.color; cCtx.fillStyle=colorState.color; }
+  cCtx.lineWidth=s; cCtx.lineCap="round"; cCtx.lineJoin="round"; return s; }
+cCanvas.addEventListener("pointerdown",function(e){ if(colorState.tool==="fill")return;
+  if(cId!==null)return; cId=e.pointerId; cCanvas.setPointerCapture(e.pointerId);
+  cRect=cCanvas.getBoundingClientRect(); cSc=cCanvas.width/cRect.width;
+  var x=(e.clientX-cRect.left)*cSc,y=(e.clientY-cRect.top)*cSc; pushColorUndo();
+  if(colorState.tool==="sticker"){ placeSticker(cCtx,x,y); sfx("pop"); cId=null; return; }
+  cDrawing=true; cLast={x:x,y:y}; var s=cStrokeStyle(); cCtx.beginPath(); cCtx.arc(x,y,s/2,0,Math.PI*2); cCtx.fill();
+});
+cCanvas.addEventListener("pointermove",function(e){ if(!cDrawing||e.pointerId!==cId)return;
+  var evs=e.getCoalescedEvents?e.getCoalescedEvents():[e];
+  for(var k=0;k<evs.length;k++){ var x=(evs[k].clientX-cRect.left)*cSc,y=(evs[k].clientY-cRect.top)*cSc;
+    cStrokeStyle(); cCtx.beginPath(); cCtx.moveTo(cLast.x,cLast.y); cCtx.lineTo(x,y); cCtx.stroke(); cLast={x:x,y:y}; } });
+function cEnd(e){ if(e.pointerId!==cId)return; cDrawing=false; cId=null; }
+cCanvas.addEventListener("pointerup",cEnd); cCanvas.addEventListener("pointercancel",cEnd);
+function placeSticker(ctx,x,y){ var s=STK_SIZES[colorState.size]*cSc; ctx.globalCompositeOperation="source-over";
+  ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.font=s+"px 'Apple Color Emoji','Noto Color Emoji',sans-serif"; ctx.fillText(colorState.sticker,x,y); }
+
+function checkComplete(){ if(celebrated)return; var zs=curSvg.querySelectorAll(".z");
+  for(var i=0;i<zs.length;i++){ if(!curZones[i])return; } finishPicture(); }
+document.getElementById("cDone").addEventListener("click",function(){ sfx("click"); finishPicture(); });
+
+function finishPicture(){ celebrated=true;
+  var first=!isDone(curPic.id);
+  save.done[curPic.id]={colors:Object.assign({},curZones)};
+  if(save.stickers.indexOf(curPic.emoji)<0)save.stickers.push(curPic.emoji);
+  // 마을 완성 트로피
+  var ps=worldPics(curPic.world); var allDone=ps.every(function(p){return isDone(p.id);});
+  if(allDone&&save.stickers.indexOf("🏆")<0)save.stickers.push("🏆");
+  persist();
+  sfx("win"); praise(); showCelebrate(first,allDone);
+}
+function showCelebrate(first,allDone){ var c=document.getElementById("celebrate");
+  document.getElementById("celTitle").textContent=allDone?"마을 완성! 🏆":"완성! 🎉";
+  document.getElementById("celMsg").textContent=callName()+" "+(first?"⭐ 별을 얻었어!":"또 멋지게 칠했네!")+(allDone?" 마을을 다 모았어!":"");
+  c.classList.add("show"); confetti();
+}
+function confetti(){ var e=["⭐","🎉","✨","🌈","❤️","🌟"];
+  for(var i=0;i<24;i++){ var s=document.createElement("div"); s.className="confetti"; s.textContent=e[Math.floor(Math.random()*e.length)];
+    s.style.left=Math.random()*100+"vw"; s.style.animationDuration=(1.6+Math.random()*1.4)+"s"; s.style.fontSize=(20+Math.random()*22)+"px";
+    document.body.appendChild(s); (function(el){ setTimeout(function(){el.remove();},3200); })(s); } }
+document.getElementById("celBook").addEventListener("click",function(){ sfx("click"); document.getElementById("celebrate").classList.remove("show"); show("book"); });
+document.getElementById("celAgain").addEventListener("click",function(){ sfx("click"); document.getElementById("celebrate").classList.remove("show"); celebrated=false; });
+document.getElementById("celNext").addEventListener("click",function(){ sfx("click"); document.getElementById("celebrate").classList.remove("show");
+  var ps=worldPics(curPic.world); var idx=ps.findIndex(function(p){return p.id===curPic.id;});
+  var next=ps[idx+1]; if(next&&isUnlocked(next.id)){ openColoring(next.id); } else { openGrid(curPic.world); } });
+
+/* ====================== 자유 그리기 ====================== */
+var fCanvas=document.getElementById("freeCanvas"), fCtx=fCanvas.getContext("2d",{willReadFrequently:true});
+var freeState={tool:"draw",color:"#36a3ff",size:1,sticker:"⭐"};
+var fUndoStack=[],fRedo=[];
+buildPalette(document.getElementById("fPalette"),function(c){ freeState.color=c; if(freeState.tool==="fill"||freeState.tool==="eraser")setFTool("draw"); }, freeState.color);
+buildStickers(document.getElementById("fStickers"),function(s){ freeState.sticker=s; setFTool("sticker"); });
+buildSizes(document.getElementById("fSizes"),function(i){ freeState.size=i; });
+function setFTool(t){ freeState.tool=t; var map={draw:"fDraw",fill:"fFill",eraser:"fEraser",sticker:"fStk"};
+  for(var k in map)document.getElementById(map[k]).classList.toggle("on",k===t);
+  document.getElementById("fStickers").classList.toggle("show",t==="sticker"); }
+document.getElementById("fDraw").addEventListener("click",function(){sfx("click");setFTool("draw");});
+document.getElementById("fFill").addEventListener("click",function(){sfx("click");setFTool("fill");});
+document.getElementById("fEraser").addEventListener("click",function(){sfx("click");setFTool("eraser");});
+document.getElementById("fStk").addEventListener("click",function(){sfx("click");setFTool("sticker");});
+function fitFree(preserve){ var snap=preserve&&fCanvas.width?fCanvas.toDataURL():null;
+  var st=document.getElementById("freeStage"); fCanvas.width=Math.round(st.clientWidth*DPR); fCanvas.height=Math.round(st.clientHeight*DPR);
+  fCtx.fillStyle="#fff"; fCtx.fillRect(0,0,fCanvas.width,fCanvas.height);
+  if(snap){ var img=new Image(); img.onload=function(){fCtx.drawImage(img,0,0,fCanvas.width,fCanvas.height);}; img.src=snap; } }
+function openFree(){ show("free"); requestAnimationFrame(function(){ if(!fCanvas.width||fUndoStack.length===0){ fitFree(false); fUndoStack=[fCanvas.toDataURL()]; fRedo=[]; } }); }
+function fPushUndo(){ fUndoStack.push(fCanvas.toDataURL()); if(fUndoStack.length>30)fUndoStack.shift(); fRedo=[]; }
+function fRestore(d){ var img=new Image(); img.onload=function(){ fCtx.clearRect(0,0,fCanvas.width,fCanvas.height); fCtx.drawImage(img,0,0,fCanvas.width,fCanvas.height); }; img.src=d; }
+document.getElementById("fUndo").addEventListener("click",function(){ sfx("click"); if(fUndoStack.length>1){ fRedo.push(fUndoStack.pop()); fRestore(fUndoStack[fUndoStack.length-1]); } });
+document.getElementById("fClear").addEventListener("click",function(){ sfx("click"); if(confirm("그림을 모두 지울까요?")){ fCtx.fillStyle="#fff"; fCtx.fillRect(0,0,fCanvas.width,fCanvas.height); fPushUndo(); } });
+document.getElementById("fSave").addEventListener("click",function(){ sfx("click"); fCanvas.toBlob(function(b){ var u=URL.createObjectURL(b); var a=document.createElement("a"); a.href=u; a.download="현준이그림_"+Date.now()+".png"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){URL.revokeObjectURL(u);},1000); showToast("저장했어요! 💾"); }); });
+var fDrawing=false,fId=null,fLast=null,fRect=null,fSc=1;
+function fStyle(){ var s=SIZES[freeState.size]*fSc; if(freeState.tool==="eraser"){ fCtx.strokeStyle="#fff"; fCtx.fillStyle="#fff"; s*=2.6; } else { fCtx.strokeStyle=freeState.color; fCtx.fillStyle=freeState.color; } fCtx.lineWidth=s; fCtx.lineCap="round"; fCtx.lineJoin="round"; return s; }
+fCanvas.addEventListener("pointerdown",function(e){ if(fId!==null)return; fId=e.pointerId; fCanvas.setPointerCapture(e.pointerId);
+  fRect=fCanvas.getBoundingClientRect(); fSc=fCanvas.width/fRect.width; var x=(e.clientX-fRect.left)*fSc,y=(e.clientY-fRect.top)*fSc;
+  if(freeState.tool==="fill"){ floodFill(fCtx,fCanvas,x,y,freeState.color); fPushUndo(); sfx("pop"); fId=null; return; }
+  if(freeState.tool==="sticker"){ var s2=STK_SIZES[freeState.size]*fSc; fCtx.textAlign="center"; fCtx.textBaseline="middle"; fCtx.font=s2+"px 'Apple Color Emoji','Noto Color Emoji',sans-serif"; fCtx.fillText(freeState.sticker,x,y); fPushUndo(); sfx("pop"); fId=null; return; }
+  fDrawing=true; fLast={x:x,y:y}; var s=fStyle(); fCtx.beginPath(); fCtx.arc(x,y,s/2,0,Math.PI*2); fCtx.fill(); });
+fCanvas.addEventListener("pointermove",function(e){ if(!fDrawing||e.pointerId!==fId)return; var evs=e.getCoalescedEvents?e.getCoalescedEvents():[e];
+  for(var k=0;k<evs.length;k++){ var x=(evs[k].clientX-fRect.left)*fSc,y=(evs[k].clientY-fRect.top)*fSc; fStyle(); fCtx.beginPath(); fCtx.moveTo(fLast.x,fLast.y); fCtx.lineTo(x,y); fCtx.stroke(); fLast={x:x,y:y}; } });
+function fEnd(e){ if(e.pointerId!==fId)return; if(fDrawing){fDrawing=false; fPushUndo();} fId=null; }
+fCanvas.addEventListener("pointerup",fEnd); fCanvas.addEventListener("pointercancel",fEnd);
+
+/* 흰 도화지용 영역 채우기(스캔라인) */
+function hexToRgb(h){ h=h.replace("#",""); if(h.length===3)h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2]; return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)]; }
+function floodFill(ctx,cv,sx,sy,hex){ var w=cv.width,h=cv.height; sx=Math.floor(sx); sy=Math.floor(sy);
+  if(sx<0||sy<0||sx>=w||sy>=h)return; var img=ctx.getImageData(0,0,w,h),d=img.data; var si=(sy*w+sx)*4;
+  var tr=d[si],tg=d[si+1],tb=d[si+2],ta=d[si+3]; var f=hexToRgb(hex),fr=f[0],fg=f[1],fb=f[2],tol=80;
+  if(Math.abs(tr-fr)<=tol&&Math.abs(tg-fg)<=tol&&Math.abs(tb-fb)<=tol)return;
+  function m(i){ return Math.abs(d[i]-tr)<=tol&&Math.abs(d[i+1]-tg)<=tol&&Math.abs(d[i+2]-tb)<=tol&&Math.abs(d[i+3]-ta)<=tol; }
+  var st=[[sx,sy]]; while(st.length){ var p=st.pop(),x=p[0],y=p[1]; while(y>=0&&m((y*w+x)*4))y--; y++; var rl=false,rr=false;
+    while(y<h&&m((y*w+x)*4)){ var i=(y*w+x)*4; d[i]=fr;d[i+1]=fg;d[i+2]=fb;d[i+3]=255;
+      if(x>0){ if(m((y*w+(x-1))*4)){ if(!rl){st.push([x-1,y]);rl=true;} } else rl=false; }
+      if(x<w-1){ if(m((y*w+(x+1))*4)){ if(!rr){st.push([x+1,y]);rr=true;} } else rr=false; } y++; } }
+  ctx.putImageData(img,0,0); }
+
+/* ====================== 도감 ====================== */
+function renderBook(){ var total=PICTURES.length, done=Object.keys(save.done).length;
+  document.getElementById("bookStat").textContent="⭐ "+done+" / "+total+"  모았어요!";
+  var sb=document.getElementById("stickerbar"); sb.innerHTML="";
+  var pool=window.STICKER_POOL||["⭐","🏆"];
+  pool.forEach(function(em){ var s=document.createElement("div"); var got=save.stickers.indexOf(em)>=0;
+    s.className=got?"got":"empty"; s.textContent=got?em:"❔"; sb.appendChild(s); });
+  var box=document.getElementById("bookPics"); box.innerHTML="";
+  PICTURES.forEach(function(p){ if(!isDone(p.id))return; var card=document.createElement("div"); card.className="pic";
+    var svg=makeArtSVG(p.art); applyColors(svg,save.done[p.id].colors); card.appendChild(svg);
+    var nm=document.createElement("div"); nm.className="name"; nm.textContent=p.name; card.appendChild(nm);
+    card.addEventListener("click",function(){ sfx("click"); openColoring(p.id); }); box.appendChild(card); });
+  if(done===0){ box.innerHTML='<p style="grid-column:1/-1;text-align:center;color:#6b7785;font-size:18px">아직 완성한 그림이 없어요. 마을에서 색칠해보자! 🎨</p>'; }
+}
+
+/* ====================== 설정 ====================== */
+function openSettings(){ document.getElementById("setName").value=save.name;
+  setToggle("tgSound",save.sound); setToggle("tgBgm",save.bgm); setToggle("tgVoice",save.voice); show("settings"); }
+function setToggle(id,on){ document.getElementById(id).classList.toggle("on",!!on); }
+document.getElementById("setName").addEventListener("change",function(e){ var v=e.target.value.trim()||"친구"; save.name=v; persist(); });
+document.getElementById("tgSound").addEventListener("click",function(){ save.sound=!save.sound; setToggle("tgSound",save.sound); persist(); sfx("click"); });
+document.getElementById("tgBgm").addEventListener("click",function(){ save.bgm=!save.bgm; setToggle("tgBgm",save.bgm); persist(); if(save.bgm)bgmStart(); else bgmStop(); });
+document.getElementById("tgVoice").addEventListener("click",function(){ save.voice=!save.voice; setToggle("tgVoice",save.voice); persist(); if(save.voice)speak(callName()+" 안녕!"); });
+document.getElementById("gridSound").addEventListener("click",function(){ save.sound=!save.sound; persist(); document.getElementById("gridSound").classList.toggle("on",save.sound); showToast(save.sound?"소리 켜짐 🔊":"소리 꺼짐 🔇"); });
+document.getElementById("resetProg").addEventListener("click",function(){ if(confirm("모은 별과 도감을 모두 지울까요?")){ save.done={}; save.stickers=[]; persist(); showToast("초기화했어요"); } });
+
+/* ====================== 기타 ====================== */
+var toast=document.getElementById("toast");
+function showToast(m){ toast.textContent=m; toast.classList.add("show"); setTimeout(function(){toast.classList.remove("show");},1600); }
+window.addEventListener("resize",function(){ if(document.getElementById("screen-color").classList.contains("show"))fitArtbox(); if(document.getElementById("screen-free").classList.contains("show"))fitFree(true); });
+// 첫 사용자 동작에서 오디오 준비
+document.addEventListener("pointerdown",function once(){ audio(); if(save.bgm)bgmStart(); document.removeEventListener("pointerdown",once); },{once:true});
+
+/* 시작 */
+renderHome(); show("home");
+})();
+</script>
+<script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}</script>
+</body>
+</html>
