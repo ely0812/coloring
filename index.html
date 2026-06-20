@@ -164,6 +164,7 @@
       <span class="title" id="colorTitle"></span>
       <span class="spacer"></span>
       <button class="btn" id="cUndo"><span class="ico">↩️</span>되돌리기</button>
+      <button class="btn" id="cReset"><span class="ico">🔄</span>처음부터</button>
       <button class="btn primary big" id="cDone"><span class="ico">✅</span>다 했어요!</button>
     </div>
     <div class="stage" id="colorStage"><div class="artbox" id="artbox">
@@ -865,8 +866,16 @@ function openColoring(pid){
 function onZoneTap(e){ if(colorState.tool!=="fill")return; var z=e.target;
   while(z&&z!==curSvg&&!(z.classList&&z.classList.contains("z")))z=z.parentNode;
   if(!z||z===curSvg)return;
-  pushColorUndo(); var i=+z.getAttribute("data-i"); z.style.fill=colorState.color; curZones[i]=colorState.color;
-  sfx("pop"); checkComplete();
+  var i=+z.getAttribute("data-i"); z.style.fill=colorState.color; curZones[i]=colorState.color;
+  pushColorUndo(); sfx("pop"); checkComplete();
+}
+// 지우개로 칸을 지움: 캔버스를 잠깐 통과시켜 SVG 칸을 찾아 흰색으로
+function clearRegionAt(clientX,clientY){
+  cCanvas.style.pointerEvents="none";
+  var el=document.elementFromPoint(clientX,clientY);
+  cCanvas.style.pointerEvents=(colorState.tool==="fill")?"none":"auto";
+  if(el&&el.classList&&el.classList.contains("z")){ var i=+el.getAttribute("data-i");
+    if(curZones[i]!==undefined){ el.style.fill="#ffffff"; delete curZones[i]; } }
 }
 function cScale(){ return cCanvas.width/cCanvas.getBoundingClientRect().width; }
 function pushColorUndo(){ cUndoStack.push({zones:Object.assign({},curZones),canvas:cCanvas.toDataURL()});
@@ -875,6 +884,11 @@ function colorUndo(){ if(cUndoStack.length<2)return; cUndoStack.pop(); var s=cUn
   curZones=Object.assign({},s.zones); applyColors(curSvg,curZones);
   var img=new Image(); img.onload=function(){ cCtx.clearRect(0,0,cCanvas.width,cCanvas.height); cCtx.drawImage(img,0,0,cCanvas.width,cCanvas.height); }; img.src=s.canvas; }
 document.getElementById("cUndo").addEventListener("click",function(){sfx("click");colorUndo();});
+document.getElementById("cReset").addEventListener("click",function(){ sfx("click");
+  if(confirm("이 그림을 처음부터 다시 칠할까요?")){
+    curZones={}; applyColors(curSvg,curZones);
+    cCtx.clearRect(0,0,cCanvas.width,cCanvas.height);
+    celebrated=false; cUndoStack=[]; pushColorUndo(); }});
 document.getElementById("colorBack").addEventListener("click",function(){sfx("click"); openGrid(curPic.world);});
 
 /* 크레용/지우개/스티커 — 오버레이 캔버스 */
@@ -886,15 +900,17 @@ function cStrokeStyle(){ var s=SIZES[colorState.size]*cSc;
 cCanvas.addEventListener("pointerdown",function(e){ if(colorState.tool==="fill")return;
   if(cId!==null)return; cId=e.pointerId; cCanvas.setPointerCapture(e.pointerId);
   cRect=cCanvas.getBoundingClientRect(); cSc=cCanvas.width/cRect.width;
-  var x=(e.clientX-cRect.left)*cSc,y=(e.clientY-cRect.top)*cSc; pushColorUndo();
-  if(colorState.tool==="sticker"){ placeSticker(cCtx,x,y); sfx("pop"); cId=null; return; }
+  var x=(e.clientX-cRect.left)*cSc,y=(e.clientY-cRect.top)*cSc;
+  if(colorState.tool==="sticker"){ placeSticker(cCtx,x,y); sfx("pop"); pushColorUndo(); cId=null; return; }
+  if(colorState.tool==="eraser"){ clearRegionAt(e.clientX,e.clientY); }
   cDrawing=true; cLast={x:x,y:y}; var s=cStrokeStyle(); cCtx.beginPath(); cCtx.arc(x,y,s/2,0,Math.PI*2); cCtx.fill();
 });
 cCanvas.addEventListener("pointermove",function(e){ if(!cDrawing||e.pointerId!==cId)return;
   var evs=e.getCoalescedEvents?e.getCoalescedEvents():[e];
   for(var k=0;k<evs.length;k++){ var x=(evs[k].clientX-cRect.left)*cSc,y=(evs[k].clientY-cRect.top)*cSc;
+    if(colorState.tool==="eraser")clearRegionAt(evs[k].clientX,evs[k].clientY);
     cStrokeStyle(); cCtx.beginPath(); cCtx.moveTo(cLast.x,cLast.y); cCtx.lineTo(x,y); cCtx.stroke(); cLast={x:x,y:y}; } });
-function cEnd(e){ if(e.pointerId!==cId)return; cDrawing=false; cId=null; }
+function cEnd(e){ if(e.pointerId!==cId)return; if(cDrawing)pushColorUndo(); cDrawing=false; cId=null; }
 cCanvas.addEventListener("pointerup",cEnd); cCanvas.addEventListener("pointercancel",cEnd);
 function placeSticker(ctx,x,y){ var s=STK_SIZES[colorState.size]*cSc; ctx.globalCompositeOperation="source-over";
   ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.font=s+"px 'Apple Color Emoji','Noto Color Emoji',sans-serif"; ctx.fillText(colorState.sticker,x,y); }
