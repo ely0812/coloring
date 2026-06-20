@@ -414,35 +414,262 @@
     '<circle class="z" cx="229" cy="180" r="36"/>' +
     '<circle class="z" cx="200" cy="130" r="34"/>';
 
+  var CHERRY =
+    '<rect class="z" x="0" y="0" width="400" height="360"/>' +
+    '<circle class="z" cx="158" cy="262" r="54"/>' +
+    '<circle class="z" cx="258" cy="276" r="54"/>' +
+    '<path class="ln" d="M158 208 Q150 130 212 96"/>' +
+    '<path class="ln" d="M258 222 Q268 140 214 96"/>' +
+    '<path class="z" d="M214 96 C246 68 292 78 302 104 C268 116 234 114 214 96 Z"/>' +
+    '<path class="ln" d="M134 244 q12 14 28 8"/>' +
+    '<path class="ln" d="M234 258 q12 14 28 8"/>';
+
+  var PLANE =
+    '<rect class="z" x="0" y="0" width="400" height="360"/>' +
+    '<path class="z" d="M56 200 Q56 176 150 172 L300 172 Q352 174 370 200 Q352 226 300 228 L150 228 Q56 224 56 200 Z"/>' +
+    '<path class="z" d="M92 188 L68 130 L130 172 Z"/>' +
+    '<path class="z" d="M168 224 L126 274 L228 274 L248 224 Z"/>' +
+    '<circle class="z" cx="302" cy="194" r="9"/>' +
+    '<circle class="z" cx="270" cy="194" r="9"/>' +
+    '<circle class="z" cx="238" cy="194" r="9"/>' +
+    '<path class="ln" d="M150 202 L320 202"/>';
+
+  var BOAT =
+    '<rect class="z" x="0" y="0" width="400" height="282"/>' +
+    '<path class="z" d="M0 284 q50 -20 100 0 q50 20 100 0 q50 -20 100 0 q50 20 100 0 L400 360 L0 360 Z"/>' +
+    '<path class="z" d="M116 250 L284 250 Q276 298 250 302 L150 302 Q124 298 116 250 Z"/>' +
+    '<path class="z" d="M206 98 L206 244 L308 244 Z"/>' +
+    '<path class="z" d="M194 124 L194 244 L114 244 Z"/>' +
+    '<path class="ln" d="M200 90 L200 250"/>' +
+    '<path class="z" d="M200 90 L242 102 L200 114 Z"/>';
+
+  var FIRETRUCK =
+    '<rect class="z" x="0" y="0" width="400" height="262"/>' +
+    '<rect class="z" x="0" y="262" width="400" height="98"/>' +
+    '<path class="z" d="M68 178 L250 148 L256 162 L74 192 Z"/>' +
+    '<path class="ln" d="M104 176 L110 190 M140 170 L146 184 M176 164 L182 178 M212 158 L218 172"/>' +
+    '<rect class="z" x="38" y="186" width="226" height="60" rx="8"/>' +
+    '<rect class="z" x="260" y="154" width="86" height="92" rx="10"/>' +
+    '<rect class="z" x="300" y="166" width="34" height="34" rx="4"/>' +
+    '<rect class="z" x="150" y="170" width="22" height="16" rx="3"/>' +
+    '<circle class="z" cx="108" cy="250" r="34"/>' +
+    '<circle class="z" cx="292" cy="250" r="34"/>' +
+    '<circle class="dk" cx="108" cy="250" r="12"/>' +
+    '<circle class="dk" cx="292" cy="250" r="12"/>';
+
+  var ALIEN =
+    '<rect class="z" x="0" y="0" width="400" height="360"/>' +
+    '<circle class="dk" cx="60" cy="70" r="4"/>' +
+    '<circle class="dk" cx="340" cy="80" r="5"/>' +
+    '<circle class="dk" cx="58" cy="300" r="4"/>' +
+    '<rect class="z" x="150" y="248" width="22" height="58" rx="11"/>' +
+    '<rect class="z" x="228" y="248" width="22" height="58" rx="11"/>' +
+    '<path class="z" d="M168 214 Q200 232 232 214 L228 286 Q200 298 172 286 Z"/>' +
+    '<ellipse class="z" cx="200" cy="150" rx="76" ry="88"/>' +
+    '<path class="dk" d="M170 150 Q150 132 170 114 Q192 138 170 150 Z"/>' +
+    '<path class="dk" d="M230 150 Q250 132 230 114 Q208 138 230 150 Z"/>' +
+    '<path class="ln" d="M184 196 q16 10 32 0"/>' +
+    '<path class="ln" d="M178 70 L166 42"/>' +
+    '<circle class="z" cx="164" cy="36" r="9"/>' +
+    '<path class="ln" d="M222 70 L234 42"/>' +
+    '<circle class="z" cx="236" cy="36" r="9"/>';
+
+  var TREX =
+    '<rect class="z" x="0" y="0" width="400" height="300"/>' +
+    '<rect class="z" x="0" y="300" width="400" height="60"/>' +
+    '<rect class="z" x="158" y="280" width="38" height="66" rx="14"/>' +
+    '<rect class="z" x="214" y="280" width="38" height="66" rx="14"/>' +
+    '<path class="z" d="M28 250 C78 240 110 232 140 222 C176 210 196 192 206 172 C216 148 242 128 276 130 C322 132 348 150 352 170 C354 184 340 190 320 190 C300 192 286 196 274 204 C268 226 262 246 260 264 C256 286 236 294 200 294 C150 296 96 290 64 280 C44 274 33 262 28 250 Z"/>' +
+    '<path class="z" d="M150 220 l13 -26 13 26 Z"/>' +
+    '<path class="z" d="M182 202 l13 -28 13 28 Z"/>' +
+    '<rect class="z" x="248" y="208" width="28" height="13" rx="6"/>' +
+    '<circle class="dk" cx="300" cy="160" r="6"/>' +
+    '<circle class="dk" cx="344" cy="172" r="4"/>' +
+    '<path class="ln" d="M300 192 q22 10 42 -2"/>';
+
+  var STEGO =
+    '<rect class="z" x="0" y="0" width="400" height="300"/>' +
+    '<rect class="z" x="0" y="300" width="400" height="60"/>' +
+    '<path class="z" d="M40 272 C16 264 18 242 34 240 C70 250 96 262 122 268 Z"/>' +
+    '<ellipse class="z" cx="190" cy="240" rx="112" ry="58"/>' +
+    '<ellipse class="z" cx="314" cy="234" rx="34" ry="26"/>' +
+    '<rect class="z" x="118" y="288" width="28" height="52" rx="11"/>' +
+    '<rect class="z" x="160" y="290" width="28" height="50" rx="11"/>' +
+    '<rect class="z" x="212" y="290" width="28" height="50" rx="11"/>' +
+    '<rect class="z" x="254" y="288" width="28" height="52" rx="11"/>' +
+    '<path class="z" d="M118 198 Q130 158 150 158 Q170 158 178 198 Z"/>' +
+    '<path class="z" d="M166 190 Q180 148 200 148 Q220 148 226 190 Z"/>' +
+    '<path class="z" d="M214 194 Q226 156 244 156 Q262 156 268 194 Z"/>' +
+    '<circle class="dk" cx="324" cy="228" r="5"/>';
+
+  var SUN =
+    '<rect class="z" x="0" y="0" width="400" height="360"/>' +
+    '<path class="ln" d="M200 78 V40 M200 322 V284 M98 180 H60 M302 180 H342 M128 108 L100 80 M272 108 L300 80 M128 252 L100 280 M272 252 L300 280"/>' +
+    '<circle class="z" cx="200" cy="180" r="84"/>' +
+    '<circle class="dk" cx="176" cy="168" r="8"/>' +
+    '<circle class="dk" cx="224" cy="168" r="8"/>' +
+    '<path class="ln" d="M168 204 q32 28 64 0"/>';
+
+  var RAINBOW =
+    '<rect class="z" x="0" y="0" width="400" height="360"/>' +
+    '<path class="z" d="M50 270 A150 150 0 0 1 350 270 L328 270 A128 128 0 0 0 72 270 Z"/>' +
+    '<path class="z" d="M72 270 A128 128 0 0 1 328 270 L306 270 A106 106 0 0 0 94 270 Z"/>' +
+    '<path class="z" d="M94 270 A106 106 0 0 1 306 270 L284 270 A84 84 0 0 0 116 270 Z"/>' +
+    '<path class="z" d="M116 270 A84 84 0 0 1 284 270 L262 270 A62 62 0 0 0 138 270 Z"/>' +
+    '<path class="z" d="M58 286 Q44 262 70 258 Q80 238 106 248 Q128 242 128 268 Q146 274 134 292 Z"/>' +
+    '<path class="z" d="M342 286 Q356 262 330 258 Q320 238 294 248 Q272 242 272 268 Q254 274 266 292 Z"/>';
+
+  var DOG =
+    '<rect class="z" x="0" y="0" width="400" height="360"/>' +
+    '<ellipse class="z" cx="116" cy="178" rx="34" ry="62"/>' +
+    '<ellipse class="z" cx="284" cy="178" rx="34" ry="62"/>' +
+    '<circle class="z" cx="200" cy="190" r="96"/>' +
+    '<ellipse class="z" cx="200" cy="232" rx="54" ry="42"/>' +
+    '<ellipse class="dk" cx="200" cy="212" rx="17" ry="12"/>' +
+    '<circle class="dk" cx="166" cy="170" r="10"/>' +
+    '<circle class="dk" cx="234" cy="170" r="10"/>' +
+    '<path class="ln" d="M200 224 V246 M200 246 q-22 18 -42 6 M200 246 q22 18 42 6"/>';
+
+  var CAT =
+    '<rect class="z" x="0" y="0" width="400" height="360"/>' +
+    '<path class="z" d="M122 142 L150 58 L198 130 Z"/>' +
+    '<path class="z" d="M278 142 L250 58 L202 130 Z"/>' +
+    '<circle class="z" cx="200" cy="202" r="94"/>' +
+    '<ellipse class="z" cx="166" cy="192" rx="16" ry="22"/>' +
+    '<ellipse class="z" cx="234" cy="192" rx="16" ry="22"/>' +
+    '<circle class="dk" cx="166" cy="192" r="7"/>' +
+    '<circle class="dk" cx="234" cy="192" r="7"/>' +
+    '<path class="dk" d="M191 214 L209 214 L200 226 Z"/>' +
+    '<path class="ln" d="M200 226 V236 M200 236 q-16 12 -30 4 M200 236 q16 12 30 4"/>' +
+    '<path class="ln" d="M150 214 L104 206 M150 228 L104 230 M250 214 L296 206 M250 228 L296 230"/>';
+
+  var RABBIT =
+    '<rect class="z" x="0" y="0" width="400" height="360"/>' +
+    '<ellipse class="z" cx="170" cy="112" rx="26" ry="82"/>' +
+    '<ellipse class="z" cx="230" cy="112" rx="26" ry="82"/>' +
+    '<ellipse class="z" cx="170" cy="118" rx="12" ry="58"/>' +
+    '<ellipse class="z" cx="230" cy="118" rx="12" ry="58"/>' +
+    '<circle class="z" cx="200" cy="232" r="86"/>' +
+    '<circle class="dk" cx="172" cy="220" r="10"/>' +
+    '<circle class="dk" cx="228" cy="220" r="10"/>' +
+    '<path class="dk" d="M192 244 L208 244 L200 254 Z"/>' +
+    '<path class="ln" d="M200 254 V264 M200 264 q-16 12 -30 4 M200 264 q16 12 30 4"/>';
+
+  var BEAR =
+    '<rect class="z" x="0" y="0" width="400" height="360"/>' +
+    '<circle class="z" cx="128" cy="124" r="36"/>' +
+    '<circle class="z" cx="272" cy="124" r="36"/>' +
+    '<circle class="z" cx="200" cy="200" r="96"/>' +
+    '<ellipse class="z" cx="200" cy="238" rx="52" ry="40"/>' +
+    '<ellipse class="dk" cx="200" cy="222" rx="16" ry="11"/>' +
+    '<circle class="dk" cx="166" cy="180" r="9"/>' +
+    '<circle class="dk" cx="234" cy="180" r="9"/>' +
+    '<path class="ln" d="M200 233 V250 M200 250 q-18 14 -34 4 M200 250 q18 14 34 4"/>';
+
+  var FISH =
+    '<rect class="z" x="0" y="0" width="400" height="360"/>' +
+    '<path class="z" d="M84 190 L20 138 L20 242 Z"/>' +
+    '<path class="z" d="M152 122 L206 100 L236 132 Z"/>' +
+    '<path class="z" d="M118 246 L172 268 L150 224 Z"/>' +
+    '<ellipse class="z" cx="194" cy="192" rx="104" ry="68"/>' +
+    '<path class="ln" d="M250 142 Q236 192 250 244"/>' +
+    '<circle class="z" cx="276" cy="172" r="16"/>' +
+    '<circle class="dk" cx="280" cy="172" r="7"/>' +
+    '<path class="ln" d="M250 218 q24 14 44 2"/>' +
+    '<circle class="dk" cx="120" cy="90" r="6"/>' +
+    '<circle class="dk" cx="150" cy="62" r="4"/>';
+
+  var OCTOPUS =
+    '<rect class="z" x="0" y="0" width="400" height="360"/>' +
+    '<path class="z" d="M150 206 C128 252 112 292 88 308 C78 296 88 250 124 210 Z"/>' +
+    '<path class="z" d="M178 214 C168 262 162 304 144 322 C132 308 146 260 162 212 Z"/>' +
+    '<path class="z" d="M222 214 C232 262 238 304 256 322 C268 308 254 260 238 212 Z"/>' +
+    '<path class="z" d="M250 206 C272 252 288 292 312 308 C322 296 312 250 276 210 Z"/>' +
+    '<path class="z" d="M200 216 C194 264 192 306 200 326 C208 306 206 264 200 216 Z"/>' +
+    '<ellipse class="z" cx="200" cy="156" rx="84" ry="78"/>' +
+    '<circle class="z" cx="172" cy="152" r="22"/>' +
+    '<circle class="z" cx="228" cy="152" r="22"/>' +
+    '<circle class="dk" cx="176" cy="156" r="9"/>' +
+    '<circle class="dk" cx="232" cy="156" r="9"/>' +
+    '<path class="ln" d="M180 196 q20 12 40 0"/>';
+
+  var TURTLE =
+    '<rect class="z" x="0" y="0" width="400" height="360"/>' +
+    '<ellipse class="z" cx="178" cy="262" rx="30" ry="22"/>' +
+    '<ellipse class="z" cx="262" cy="262" rx="30" ry="22"/>' +
+    '<path class="z" d="M84 240 L60 226 L86 220 Z"/>' +
+    '<circle class="z" cx="318" cy="220" r="30"/>' +
+    '<path class="z" d="M90 244 A112 84 0 0 1 314 244 Z"/>' +
+    '<path class="ln" d="M202 162 L202 244 M120 232 Q202 210 284 232"/>' +
+    '<path class="ln" d="M160 180 L150 232 M244 180 L254 232"/>' +
+    '<circle class="dk" cx="330" cy="214" r="5"/>' +
+    '<path class="ln" d="M322 230 q12 6 20 0"/>';
+
+  var CRAB =
+    '<rect class="z" x="0" y="0" width="400" height="360"/>' +
+    '<path class="ln" d="M120 232 L70 250 M124 252 L74 278 M280 232 L330 250 M276 252 L326 278"/>' +
+    '<path class="z" d="M112 206 C70 196 48 214 50 238 C66 252 94 248 102 232 C90 234 74 228 78 216 C88 206 104 206 112 206 Z"/>' +
+    '<path class="z" d="M288 206 C330 196 352 214 350 238 C334 252 306 248 298 232 C310 234 326 228 322 216 C312 206 296 206 288 206 Z"/>' +
+    '<ellipse class="z" cx="200" cy="222" rx="98" ry="62"/>' +
+    '<path class="ln" d="M176 162 V136 M224 162 V136"/>' +
+    '<circle class="z" cx="176" cy="126" r="15"/>' +
+    '<circle class="z" cx="224" cy="126" r="15"/>' +
+    '<circle class="dk" cx="176" cy="126" r="6"/>' +
+    '<circle class="dk" cx="224" cy="126" r="6"/>' +
+    '<path class="ln" d="M170 236 q30 20 60 0"/>';
+
   /* ---------- 마을 ---------- */
   var WORLDS = [
-    { id: "pac",   name: "팩맨 마을", emoji: "🟡", color: "linear-gradient(135deg,#ffd23d,#f5a700)" },
-    { id: "car",   name: "탈것 마을", emoji: "🚗", color: "linear-gradient(135deg,#ff7043,#e64a19)" },
-    { id: "robot", name: "로봇·공룡", emoji: "🤖", color: "linear-gradient(135deg,#5c6bc0,#283593)" },
-    { id: "town",  name: "우리 동네", emoji: "🏡", color: "linear-gradient(135deg,#66bb6a,#2e7d32)" }
+    { id: "pac",    name: "팩맨 마을", emoji: "🟡", color: "linear-gradient(135deg,#ffd23d,#f5a700)" },
+    { id: "car",    name: "탈것 마을", emoji: "🚗", color: "linear-gradient(135deg,#ff7043,#e64a19)" },
+    { id: "robot",  name: "로봇·우주", emoji: "🤖", color: "linear-gradient(135deg,#5c6bc0,#283593)" },
+    { id: "dino",   name: "공룡 마을", emoji: "🦕", color: "linear-gradient(135deg,#4caf50,#1b5e20)" },
+    { id: "animal", name: "동물 마을", emoji: "🐻", color: "linear-gradient(135deg,#a1887f,#5d4037)" },
+    { id: "sea",    name: "바다 마을", emoji: "🐠", color: "linear-gradient(135deg,#26c6da,#00838f)" },
+    { id: "town",   name: "우리 동네", emoji: "🏡", color: "linear-gradient(135deg,#66bb6a,#2e7d32)" }
   ];
 
   /* ---------- 그림 (마을별 순서대로 = 잠금해제 순서) ---------- */
   var PICTURES = [
-    { id: "pac",     world: "pac",   name: "팩맨",      emoji: "🟡", art: PAC },
-    { id: "ghost_r", world: "pac",   name: "빨강 괴물", emoji: "👾", art: GHOST },
-    { id: "ghost_b", world: "pac",   name: "파랑 괴물", emoji: "👻", art: GHOST },
+    { id: "pac",     world: "pac",    name: "팩맨",      emoji: "🟡", art: PAC },
+    { id: "ghost_r", world: "pac",    name: "빨강 괴물", emoji: "👾", art: GHOST },
+    { id: "ghost_b", world: "pac",    name: "파랑 괴물", emoji: "👻", art: GHOST },
+    { id: "cherry",  world: "pac",    name: "체리",      emoji: "🍒", art: CHERRY },
 
-    { id: "car",     world: "car",   name: "자동차",    emoji: "🚗", art: CAR },
-    { id: "train",   world: "car",   name: "기차",      emoji: "🚂", art: TRAIN },
-    { id: "rocket",  world: "car",   name: "로켓",      emoji: "🚀", art: ROCKET },
+    { id: "car",     world: "car",    name: "자동차",    emoji: "🚗", art: CAR },
+    { id: "train",   world: "car",    name: "기차",      emoji: "🚂", art: TRAIN },
+    { id: "rocket",  world: "car",    name: "로켓",      emoji: "🚀", art: ROCKET },
+    { id: "plane",   world: "car",    name: "비행기",    emoji: "✈️", art: PLANE },
+    { id: "boat",    world: "car",    name: "배",        emoji: "⛵", art: BOAT },
+    { id: "firetruck", world: "car",  name: "소방차",    emoji: "🚒", art: FIRETRUCK },
 
-    { id: "robot",   world: "robot", name: "로봇",      emoji: "🤖", art: ROBOT },
-    { id: "ufo",     world: "robot", name: "우주선",    emoji: "🛸", art: UFO },
-    { id: "dino",    world: "robot", name: "공룡",      emoji: "🦕", art: DINO },
+    { id: "robot",   world: "robot",  name: "로봇",      emoji: "🤖", art: ROBOT },
+    { id: "ufo",     world: "robot",  name: "우주선",    emoji: "🛸", art: UFO },
+    { id: "alien",   world: "robot",  name: "외계인",    emoji: "👽", art: ALIEN },
 
-    { id: "house",   world: "town",  name: "집",        emoji: "🏡", art: HOUSE },
-    { id: "tree",    world: "town",  name: "나무",      emoji: "🌳", art: TREE },
-    { id: "flower",  world: "town",  name: "꽃",        emoji: "🌷", art: FLOWER }
+    { id: "dino",    world: "dino",   name: "공룡",      emoji: "🦕", art: DINO },
+    { id: "trex",    world: "dino",   name: "티라노",    emoji: "🦖", art: TREX },
+    { id: "stego",   world: "dino",   name: "스테고",    emoji: "🦴", art: STEGO },
+
+    { id: "dog",     world: "animal", name: "강아지",    emoji: "🐶", art: DOG },
+    { id: "cat",     world: "animal", name: "고양이",    emoji: "🐱", art: CAT },
+    { id: "rabbit",  world: "animal", name: "토끼",      emoji: "🐰", art: RABBIT },
+    { id: "bear",    world: "animal", name: "곰",        emoji: "🐻", art: BEAR },
+
+    { id: "fish",    world: "sea",    name: "물고기",    emoji: "🐠", art: FISH },
+    { id: "octopus", world: "sea",    name: "문어",      emoji: "🐙", art: OCTOPUS },
+    { id: "turtle",  world: "sea",    name: "거북",      emoji: "🐢", art: TURTLE },
+    { id: "crab",    world: "sea",    name: "게",        emoji: "🦀", art: CRAB },
+
+    { id: "house",   world: "town",   name: "집",        emoji: "🏡", art: HOUSE },
+    { id: "tree",    world: "town",   name: "나무",      emoji: "🌳", art: TREE },
+    { id: "flower",  world: "town",   name: "꽃",        emoji: "🌷", art: FLOWER },
+    { id: "sun",     world: "town",   name: "해",        emoji: "☀️", art: SUN },
+    { id: "rainbow", world: "town",   name: "무지개",    emoji: "🌈", art: RAINBOW }
   ];
 
   /* 색칠 완성 도감에서 보여줄 스티커 후보 */
-  var STICKER_POOL = ["⭐","🏆","🟡","👾","👻","🚗","🚂","🚀","🤖","🛸","🦕","🏡","🌳","🌷"];
+  var STICKER_POOL = ["⭐","🏆","🟡","🍒","🚗","🚀","✈️","🚒","🤖","👽","🦕","🦖","🐶","🐱","🐰","🐻","🐠","🐙","🐢","🦀","🏡","🌈"];
 
   var api = { WORLDS: WORLDS, PICTURES: PICTURES, STICKER_POOL: STICKER_POOL };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
