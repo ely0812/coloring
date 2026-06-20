@@ -171,8 +171,8 @@
       <svg class="art"></svg><canvas></canvas>
     </div></div>
     <div class="toolbar">
-      <button class="btn on" id="cFill"><span class="ico">🪣</span>색칠</button>
-      <button class="btn" id="cDraw"><span class="ico">🖍️</span>크레용</button>
+      <button class="btn" id="cFill"><span class="ico">🪣</span>색칠</button>
+      <button class="btn on" id="cDraw"><span class="ico">🖍️</span>크레용</button>
       <button class="btn" id="cEraser"><span class="ico">🧽</span>지우개</button>
       <button class="btn" id="cStk"><span class="ico">⭐</span>스티커</button>
       <div class="palette" id="cPalette"></div>
@@ -820,7 +820,7 @@ var artbox=document.getElementById("artbox");
 var cSvgHolder=artbox.querySelector("svg");
 var cCanvas=artbox.querySelector("canvas");
 var cCtx=cCanvas.getContext("2d");
-var colorState={tool:"fill",color:"#ff5a5a",size:1,sticker:"⭐"};
+var colorState={tool:"draw",color:"#ff5a5a",size:1,sticker:"⭐"};
 var curPic=null, curSvg=null, curZones={}, cUndoStack=[], celebrated=false;
 
 buildPalette(document.getElementById("cPalette"),function(c){ colorState.color=c; if(colorState.tool!=="draw"&&colorState.tool!=="sticker"){} }, colorState.color);
@@ -858,7 +858,7 @@ function openColoring(pid){
   applyColors(curSvg,curZones);
   // 칸 클릭(색칠)
   curSvg.addEventListener("pointerdown",onZoneTap);
-  show("color"); setCTool("fill");
+  show("color"); setCTool("draw");
   requestAnimationFrame(function(){ fitArtbox(); cCtx.clearRect(0,0,cCanvas.width,cCanvas.height);
     cUndoStack=[]; pushColorUndo(); });
   speak(curPic.name+"! 예쁘게 색칠해보자!");
